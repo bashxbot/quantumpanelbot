@@ -594,6 +594,8 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_name = "Unknown User"
         user_username = "No username"
 
+    user_username_line = f"  • Username: {user_username}\n" if user_username != "No username" else ""
+
     try:
         await context.bot.send_message(
             chat_id=user_id,
@@ -603,7 +605,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"The seller has ended the conversation.\n\n"
                 f"👤 Your Details:\n"
                 f"  • Name: {user_name}\n"
-                f"{('  • Username: ' + user_username + '\n') if user_username != 'No username' else ''}"
+                f"{user_username_line}"
                 f"━━━━━━━━━━━━━━━━━\n"
                 f"💡 If you still need help, tap *Buy Key(s)* again!"
             ),

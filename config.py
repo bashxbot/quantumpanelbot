@@ -3,13 +3,11 @@ Configuration file for Quantum Panel Bot
 Contains all bot settings, constants, and conversation states
 """
 
-import os
-
 # ====================================================
 #                BOT TOKEN
 # ====================================================
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN = "8503869385:AAFl7sCbvqkKl2orYO2Tm8ac8j1pi6SKZ-s"
 
 # ====================================================
 #                ADMIN & SELLER IDS

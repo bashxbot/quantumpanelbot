@@ -1,10 +1,8 @@
 [project]
-name = "python-template"
+name = "repl-nix-workspace"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Quantum Panel Telegram Bot"
 requires-python = ">=3.11"
 dependencies = [
-    "python-telegram-bot[all]>=22.5",
-    "telegram>=0.0.1",
+    "python-telegram-bot==22.5",
 ]
