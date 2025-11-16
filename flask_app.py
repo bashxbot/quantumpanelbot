@@ -89,8 +89,9 @@ WEBHOOK_URL = f"https://{PYTHONANYWHERE_DOMAIN}/{SECRET_PATH}"
 #              INITIALIZE BOT APPLICATION
 # ====================================================
 
-# Build the application
-application = Application.builder().token(BOT_TOKEN).build()
+# Build the application for WEBHOOK mode (not polling)
+# Set updater=None to indicate webhook mode - no need for initialize/start
+application = Application.builder().token(BOT_TOKEN).updater(None).build()
 
 # ====================================================
 #            REGISTER ALL HANDLERS
@@ -253,6 +254,8 @@ application.add_handler(unblock_user_conv)
 # Regular message handler (must be last)
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+logger.info("Quantum Panel bot Flask app loaded for PythonAnywhere")
+
 # ====================================================
 #                 FLASK ROUTES
 # ====================================================
@@ -264,17 +267,22 @@ def index():
 
 @app.route(f'/{SECRET_PATH}', methods=['POST'])
 def webhook():
-    """Handle incoming webhook updates from Telegram"""
+    """
+    Handle incoming webhook updates from Telegram
+    For webhook mode, we use asyncio.run() for each request
+    This is the recommended approach for WSGI servers like PythonAnywhere
+    """
     try:
         json_data = request.get_json(force=True)
         update = Update.de_json(json_data, application.bot)
         
-        # Process update asynchronously
+        # Process update - creates new event loop for this request
+        # This is correct for webhook mode with WSGI
         asyncio.run(application.process_update(update))
         
         return 'OK', 200
     except Exception as e:
-        logger.error(f"Error processing webhook: {e}")
+        logger.error(f"Error processing webhook: {e}", exc_info=True)
         return 'Error', 500
 
 @app.route('/set_webhook')
@@ -287,7 +295,7 @@ def set_webhook():
         asyncio.run(application.bot.set_webhook(url=WEBHOOK_URL))
         return f'✅ Webhook set successfully to: {WEBHOOK_URL}'
     except Exception as e:
-        logger.error(f"Failed to set webhook: {e}")
+        logger.error(f"Failed to set webhook: {e}", exc_info=True)
         return f'❌ Error setting webhook: {str(e)}', 500
 
 @app.route('/delete_webhook')
@@ -297,7 +305,7 @@ def delete_webhook():
         asyncio.run(application.bot.delete_webhook())
         return '✅ Webhook deleted successfully'
     except Exception as e:
-        logger.error(f"Failed to delete webhook: {e}")
+        logger.error(f"Failed to delete webhook: {e}", exc_info=True)
         return f'❌ Error deleting webhook: {str(e)}', 500
 
 @app.route('/webhook_info')
@@ -315,22 +323,8 @@ def webhook_info():
             'allowed_updates': info.allowed_updates
         }
     except Exception as e:
-        logger.error(f"Failed to get webhook info: {e}")
+        logger.error(f"Failed to get webhook info: {e}", exc_info=True)
         return {'error': str(e)}, 500
-
-# ====================================================
-#                    INITIALIZE BOT
-# ====================================================
-
-async def initialize_bot():
-    """Initialize the bot application"""
-    await application.initialize()
-    await application.start()
-
-# Run initialization
-asyncio.run(initialize_bot())
-
-logger.info("Quantum Panel bot Flask app initialized for PythonAnywhere")
 
 # ====================================================
 #              WSGI APPLICATION
